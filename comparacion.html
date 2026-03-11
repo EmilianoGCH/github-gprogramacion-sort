@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis de algoritmos</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap');
+
+        :root {
+            --bg: radial-gradient(circle at top, #f4efe8 0%, #d7deee 45%, #c2d0e4 100%);
+            --panel: linear-gradient(135deg, rgba(251, 247, 241, 0.9) 0%, rgba(214, 233, 246, 0.74) 44%, rgba(210, 220, 244, 0.9) 100%);
+            --ink: #142033;
+            --muted: #41516d;
+            --soft: #60708d;
+            --rule: rgba(90, 114, 200, 0.72);
+            --row-rule: rgba(29, 38, 58, 0.14);
+            --accent-best: #14967f;
+            --accent-worst: #cc4b4b;
+            --accent-hero: #2b4dcf;
+            --accent-memory-high: #8358ff;
+            --white: rgba(255, 255, 255, 0.65);
+            --glass: rgba(255, 255, 255, 0.42);
+            --shadow: 0 20px 45px rgba(36, 54, 92, 0.16);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 28px;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: "Manrope", sans-serif;
+        }
+
+        .panel {
+            position: relative;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 34px;
+            border-radius: 38px;
+            overflow: hidden;
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .panel::before,
+        .panel::after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+            pointer-events: none;
+        }
+
+        .panel::before {
+            width: 720px;
+            height: 720px;
+            right: 40px;
+            top: -150px;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+        }
+
+        .panel::after {
+            width: 440px;
+            height: 440px;
+            left: -120px;
+            bottom: -160px;
+            background: radial-gradient(circle, rgba(255, 206, 182, 0.32), rgba(255, 255, 255, 0));
+        }
+
+        .hero,
+        .table-wrap,
+        .chart-wrap {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .hero-main,
+        .hero-side,
+        .chart-shell,
+        .table-shell {
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            border-radius: 28px;
+            background: var(--glass);
+            backdrop-filter: blur(14px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        .hero-main {
+            padding: 28px 30px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.5);
+            color: var(--accent-hero);
+            font: 700 0.82rem "Space Grotesk", sans-serif;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            margin: 18px 0 10px;
+            font-family: "Space Grotesk", sans-serif;
+            font-size: clamp(2.4rem, 5vw, 4.4rem);
+            line-height: 0.95;
+            letter-spacing: -0.06em;
+        }
+
+        .hero-title span {
+            color: var(--accent-hero);
+        }
+
+        .hero-copy {
+            max-width: 58ch;
+            margin: 0;
+            color: var(--muted);
+            font-size: 1.02rem;
+            line-height: 1.6;
+        }
+
+        .hero-side {
+            padding: 22px;
+            display: grid;
+            gap: 14px;
+            align-content: start;
+        }
+
+        .stat-card {
+            padding: 16px 18px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.54);
+        }
+
+        .stat-card strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--soft);
+            font: 700 0.78rem "Space Grotesk", sans-serif;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .stat-card b {
+            display: block;
+            font-size: 1.8rem;
+            line-height: 1;
+        }
+
+        .stat-card p {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.45;
+        }
+
+        .table-shell {
+            padding: 18px 18px 8px;
+        }
+
+        .section-head {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: end;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: -0.03em;
+        }
+
+        .section-head p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.94rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            padding: 18px 12px 14px;
+            border-bottom: 2px solid rgba(90, 114, 200, 0.45);
+            text-align: left;
+            font-family: "Space Grotesk", sans-serif;
+            font-size: clamp(0.84rem, 1.2vw, 1rem);
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--soft);
+        }
+
+        tbody td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--row-rule);
+            font-size: 1rem;
+            color: var(--muted);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        tbody tr {
+            transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+            cursor: pointer;
+        }
+
+        tbody tr:hover,
+        tbody tr.active {
+            transform: translateX(4px);
+            background: rgba(255, 255, 255, 0.58);
+            box-shadow: inset 4px 0 0 rgba(43, 77, 207, 0.5);
+        }
+
+        tbody td:first-child {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+            justify-content: space-between;
+            margin: 28px 0 16px;
+        }
+
+        .title {
+            margin: 0;
+            font-family: "Space Grotesk", sans-serif;
+            font-size: clamp(1.8rem, 3vw, 2.5rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .segmented {
+            display: inline-flex;
+            gap: 8px;
+            padding: 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(8px);
+        }
+
+        .segmented button {
+            border: 0;
+            border-radius: 999px;
+            padding: 10px 16px;
+            background: transparent;
+            color: var(--ink);
+            font: 700 0.88rem "Space Grotesk", sans-serif;
+            cursor: pointer;
+            transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+        }
+
+        .segmented button.active {
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .segmented button[data-mode="best"].active {
+            background: var(--accent-best);
+        }
+
+        .segmented button[data-mode="worst"].active {
+            background: var(--accent-worst);
+        }
+
+        .chart-shell {
+            padding: 22px;
+        }
+
+        .chart-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 18px;
+            margin-bottom: 12px;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        .legend i {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 420px;
+        }
+
+        .footnote {
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 860px) {
+            body {
+                padding: 16px;
+            }
+
+            .panel {
+                padding: 20px 16px 24px;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-main,
+            .hero-side {
+                padding: 20px;
+            }
+
+            thead th,
+            tbody td {
+                padding-left: 8px;
+                padding-right: 8px;
+                font-size: 0.88rem;
+            }
+
+            canvas {
+                height: 340px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .table-wrap {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 760px;
+            }
+
+            .controls {
+                align-items: flex-start;
+            }
+
+            .hero-title {
+                font-size: 2.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="panel">
+        <section class="hero">
+            <div class="hero-main">
+                <div class="eyebrow">Analisis de algoritmos</div>
+                <h1 class="hero-title">Complejidad, estabilidad y <span>costo computacional</span></h1>
+                <p class="hero-copy">Comparativa visual de algoritmos de ordenacion para identificar con rapidez como escala cada enfoque, cuando conviene usarlo y que sacrificios hace en memoria y estabilidad.</p>
+            </div>
+            <aside class="hero-side">
+                <div class="stat-card">
+                    <strong>Algoritmos</strong>
+                    <b>6</b>
+                    <p>Se contrastan enfoques clasicos con comportamientos lineales, cuadraticos y n log n.</p>
+                </div>
+                <div class="stat-card">
+                    <strong>Lectura clave</strong>
+                    <b>Mejor vs peor</b>
+                    <p>La grafica cambia entre escenarios para mostrar la brecha real de rendimiento esperada.</p>
+                </div>
+            </aside>
+        </section>
+
+        <section class="table-wrap">
+            <div class="table-shell">
+                <div class="section-head">
+                    <h2>Resumen comparativo</h2>
+                    <p>Pasa el cursor o selecciona una fila para aislar el algoritmo en la grafica.</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Algoritmo</th>
+                            <th>Complejidad mejor caso</th>
+                            <th>Complejidad peor caso</th>
+                            <th>Estabilidad</th>
+                            <th>Uso de memoria</th>
+                        </tr>
+                    </thead>
+                    <tbody id="algorithmTable"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="chart-wrap">
+            <div class="controls">
+                <h2 class="title">Analisis visual de complejidad</h2>
+                <div class="segmented" role="tablist" aria-label="Modo de complejidad">
+                    <button type="button" class="active" data-mode="best">Mejor caso</button>
+                    <button type="button" data-mode="worst">Peor caso</button>
+                </div>
+            </div>
+
+            <div class="chart-shell">
+                <div class="chart-meta">
+                    <div id="chartSummary">Se muestran las curvas del mejor caso para todos los algoritmos.</div>
+                    <div class="legend" id="legend"></div>
+                </div>
+                <canvas id="complexityChart" aria-label="Grafica interactiva de complejidad"></canvas>
+                <p class="footnote">Escala relativa normalizada para comparar formas de crecimiento: O(n), O(n log n) y O(n^2).</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const algorithms = [
+            {
+                id: "merge",
+                name: "Merge Sort",
+                bestLabel: "O(n log n)",
+                worstLabel: "O(n log n)",
+                stability: "Estable",
+                memory: "Alta",
+                memoryLevel: "high",
+                bestCurve: "nlogn",
+                worstCurve: "nlogn",
+                color: "#365dff"
+            },
+            {
+                id: "insertion",
+                name: "Insercion",
+                bestLabel: "O(n)",
+                worstLabel: "O(n^2)",
+                stability: "Estable",
+                memory: "Baja",
+                memoryLevel: "low",
+                bestCurve: "linear",
+                worstCurve: "quadratic",
+                color: "#15a387"
+            },
+            {
+                id: "bubble",
+                name: "Burbuja",
+                bestLabel: "O(n)",
+                worstLabel: "O(n^2)",
+                stability: "Estable",
+                memory: "Baja",
+                memoryLevel: "low",
+                bestCurve: "linear",
+                worstCurve: "quadratic",
+                color: "#ff9f1c"
+            },
+            {
+                id: "bubble-flag",
+                name: "Burbuja con bandera",
+                bestLabel: "O(n)",
+                worstLabel: "O(n^2)",
+                stability: "Estable",
+                memory: "Baja",
+                memoryLevel: "low",
+                bestCurve: "linear",
+                worstCurve: "quadratic",
+                color: "#9b5de5"
+            },
+            {
+                id: "cocktail",
+                name: "Burbuja bidireccional",
+                bestLabel: "O(n)",
+                worstLabel: "O(n^2)",
+                stability: "Estable",
+                memory: "Baja",
+                memoryLevel: "low",
+                bestCurve: "linear",
+                worstCurve: "quadratic",
+                color: "#e76f51"
+            },
+            {
+                id: "selection",
+                name: "Seleccion",
+                bestLabel: "O(n^2)",
+                worstLabel: "O(n^2)",
+                stability: "No estable",
+                memory: "Baja",
+                memoryLevel: "low",
+                bestCurve: "quadratic",
+                worstCurve: "quadratic",
+                color: "#264653"
+            }
+        ];
+
+        const tbody = document.getElementById("algorithmTable");
+        const legend = document.getElementById("legend");
+        const summary = document.getElementById("chartSummary");
+        const canvas = document.getElementById("complexityChart");
+        const ctx = canvas.getContext("2d");
+        const dpr = window.devicePixelRatio || 1;
+        const nMax = 64;
+        let currentMode = "best";
+        let highlightedId = null;
+
+        const curveFns = {
+            linear: (n) => n,
+            nlogn: (n) => (n <= 1 ? n : n * Math.log2(n)),
+            quadratic: (n) => n * n
+        };
+
+        function complexityLabel(algorithm, mode) {
+            return mode === "best" ? algorithm.bestLabel : algorithm.worstLabel;
+        }
+
+        function renderTable() {
+            tbody.innerHTML = algorithms.map((algorithm) => `
+                <tr data-id="${algorithm.id}">
+                    <td>${algorithm.name}</td>
+                    <td>${algorithm.bestLabel}</td>
+                    <td>${algorithm.worstLabel}</td>
+                    <td>${algorithm.stability}</td>
+                    <td>${algorithm.memory}</td>
+                </tr>
+            `).join("");
+
+            tbody.querySelectorAll("tr").forEach((row) => {
+                row.addEventListener("mouseenter", () => {
+                    highlightedId = row.dataset.id;
+                    syncRowState();
+                    drawChart();
+                });
+
+                row.addEventListener("mouseleave", () => {
+                    highlightedId = null;
+                    syncRowState();
+                    drawChart();
+                });
+
+                row.addEventListener("click", () => {
+                    highlightedId = highlightedId === row.dataset.id ? null : row.dataset.id;
+                    syncRowState();
+                    drawChart();
+                });
+            });
+        }
+
+        function renderLegend() {
+            legend.innerHTML = algorithms.map((algorithm) => `
+                <span>
+                    <i style="background:${algorithm.color}"></i>
+                    ${algorithm.name}
+                </span>
+            `).join("");
+        }
+
+        function syncRowState() {
+            tbody.querySelectorAll("tr").forEach((row) => {
+                row.classList.toggle("active", row.dataset.id === highlightedId);
+            });
+
+            if (highlightedId) {
+                const algorithm = algorithms.find((item) => item.id === highlightedId);
+                summary.textContent = `${algorithm.name}: ${complexityLabel(algorithm, currentMode)}, ${algorithm.stability.toLowerCase()}, memoria ${algorithm.memory.toLowerCase()}.`;
+            } else {
+                const scope = currentMode === "best" ? "mejor" : "peor";
+                summary.textContent = `Se muestran las curvas del ${scope} caso para todos los algoritmos.`;
+            }
+        }
+
+        function scaledValue(curveName, n) {
+            const y = curveFns[curveName](n);
+            const max = curveFns.quadratic(nMax);
+            return y / max;
+        }
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = Math.round(rect.width * dpr);
+            canvas.height = Math.round(rect.height * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function drawAxes(width, height, padding) {
+            const left = padding.left;
+            const top = padding.top;
+            const right = width - padding.right;
+            const bottom = height - padding.bottom;
+
+            ctx.strokeStyle = "rgba(25, 36, 56, 0.35)";
+            ctx.lineWidth = 1;
+
+            for (let step = 0; step <= 4; step += 1) {
+                const y = top + ((bottom - top) / 4) * step;
+                ctx.beginPath();
+                ctx.moveTo(left, y);
+                ctx.lineTo(right, y);
+                ctx.stroke();
+            }
+
+            for (let step = 0; step <= 4; step += 1) {
+                const x = left + ((right - left) / 4) * step;
+                ctx.beginPath();
+                ctx.moveTo(x, top);
+                ctx.lineTo(x, bottom);
+                ctx.stroke();
+            }
+
+            ctx.strokeStyle = "rgba(18, 29, 46, 0.88)";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(left, top);
+            ctx.lineTo(left, bottom);
+            ctx.lineTo(right, bottom);
+            ctx.stroke();
+
+            ctx.fillStyle = "rgba(21, 32, 52, 0.86)";
+            ctx.font = '12px "Manrope", sans-serif';
+            ctx.fillText("Tamano de entrada (n)", right - 128, bottom + 28);
+            ctx.save();
+            ctx.translate(left - 42, top + (bottom - top) / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText("Crecimiento relativo", -64, 0);
+            ctx.restore();
+
+            ctx.font = '11px "Manrope", sans-serif';
+            [0, 16, 32, 48, 64].forEach((mark, index) => {
+                const x = left + ((right - left) * index) / 4;
+                ctx.fillText(String(mark), x - 6, bottom + 18);
+            });
+
+            ["0", "0.25", "0.50", "0.75", "1.00"].forEach((mark, index) => {
+                const y = bottom - ((bottom - top) * index) / 4;
+                ctx.fillText(mark, left - 34, y + 4);
+            });
+        }
+
+        function drawLine(algorithm, width, height, padding) {
+            const left = padding.left;
+            const top = padding.top;
+            const right = width - padding.right;
+            const bottom = height - padding.bottom;
+            const curveName = currentMode === "best" ? algorithm.bestCurve : algorithm.worstCurve;
+            const isFocused = !highlightedId || highlightedId === algorithm.id;
+
+            ctx.beginPath();
+            for (let n = 1; n <= nMax; n += 1) {
+                const x = left + ((right - left) * n) / nMax;
+                const y = bottom - scaledValue(curveName, n) * (bottom - top);
+                if (n === 1) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+
+            ctx.strokeStyle = algorithm.color;
+            ctx.lineWidth = highlightedId === algorithm.id ? 4 : 2.2;
+            ctx.globalAlpha = isFocused ? 0.95 : 0.18;
+            ctx.shadowColor = highlightedId === algorithm.id ? algorithm.color : "transparent";
+            ctx.shadowBlur = highlightedId === algorithm.id ? 14 : 0;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+
+            const endX = right;
+            const endY = bottom - scaledValue(curveName, nMax) * (bottom - top);
+            ctx.fillStyle = algorithm.color;
+            ctx.beginPath();
+            ctx.arc(endX, endY, highlightedId === algorithm.id ? 5 : 3.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawChart() {
+            resizeCanvas();
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            const padding = { top: 20, right: 22, bottom: 52, left: 60 };
+
+            ctx.clearRect(0, 0, width, height);
+
+            const gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, "rgba(255, 255, 255, 0.78)");
+            gradient.addColorStop(1, "rgba(235, 243, 255, 0.4)");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+
+            drawAxes(width, height, padding);
+            algorithms.forEach((algorithm) => drawLine(algorithm, width, height, padding));
+        }
+
+        document.querySelectorAll(".segmented button").forEach((button) => {
+            button.addEventListener("click", () => {
+                currentMode = button.dataset.mode;
+                document.querySelectorAll(".segmented button").forEach((item) => {
+                    item.classList.toggle("active", item === button);
+                });
+                syncRowState();
+                drawChart();
+            });
+        });
+
+        renderTable();
+        renderLegend();
+        syncRowState();
+        drawChart();
+        window.addEventListener("resize", drawChart);
+    </script>
+</body>
+</html>
